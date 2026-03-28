@@ -1,0 +1,124 @@
+services:
+
+  db:
+    image: mariadb:10.11 #LTS release
+    restart: always
+    container_name: db
+    environment:
+    #Passwords are included directly in the compose file, best security practice is
+    #to specific passwords in a .env file and specifying with {MySQLRootPassword}, etc
+    #as defined in the .env file
+      MYSQL_ROOT_PASSWORD: PASSWORD
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD: PASSWORD
+      OVERWRITEPROTOCOL: https
+      TRUSTED_PROXIES: 172.16.0.0/12
+    networks:
+      - nextcloud_network
+    volumes:
+      - ./db_data:/var/lib/mysql
+
+  redis:
+    image: redis:alpine
+    restart: always
+    container_name: redis
+    networks:
+      - nextcloud_network
+
+
+  nextcloud:
+    image: nextcloud
+    restart: always
+    container_name: nextcloud_app
+    ports:
+      - "8080:80"
+    environment:
+      MYSQL_PASSWORD: PASSWORD
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      NEXTCLOUD_ADMIN_USER: USERADMIN
+      NEXTCLOUD_ADMIN_PASSWORD: PASSWORD
+      NEXTCLOUD_TRUSTED_DOMAINS: nextcloud.yourdomain.com
+      TRUSTED_PROXIES: 172.16.0.0/12 SERVER-IP/16
+      #NEXTCLOUD_VERIFY_CERT: false
+      OVERWRITEPROTOCOL: https
+      OVERWRITEHOST: nextcloud.yourdomain.com
+      REDIS_HOST: redis
+    volumes:
+      - ./nextcloud_data:/var/www/html
+    entrypoint: /bin/sh -c "update-ca-certificates && /entrypoint.sh apache2-foreground"
+    networks:
+      - nextcloud_network
+    depends_on:
+      - db
+      - redis
+    extra_hosts:
+      - "nextcloud.yourdomain.com:SERVER-IP"
+        
+  notify_push:
+    image: mwalbeck/nextcloud-notify-push
+    container_name: notify_push
+    restart: always
+    environment:
+      - NEXTCLOUD_URL=http://nextcloud_app:80
+      - DATABASE_URL=mysql://nextcloud:PASSWORD@db/nextcloud
+      - REDIS_URL=redis://redis
+    ports:
+      - "7867:7867"
+    volumes:
+      - ./nextcloud_data/config:/config:ro
+    networks:
+      - nextcloud_network
+    depends_on:
+      - nextcloud
+      - db
+      - redis
+    extra_hosts:
+      - "nextcloud.yourdomain.com:SERVER-IP"
+
+  collabora:
+    image: collabora/code
+    container_name: collabora
+    restart: always
+    # cap_add SYS_ADMIN is required on Arch Linux to prevent "Slow Kit Jail" 
+    # performance issues in Collabora. This capability allows the container to
+    # manage its own filesystem namespace and chroot jail, which Collabora uses
+    # to sandbox document rendering.
+    #
+    # Security tradeoff: SYS_ADMIN is one of the most powerful Linux capabilities
+    # — it grants broad kernel administration rights inside the container and 
+    # weakens container isolation. If Collabora were compromised, an attacker
+    # would have significantly more ability to affect the host system than with
+    # a standard container.
+    #
+    # Mitigations in this setup:
+    # - Collabora is on an isolated bridge network (nextcloud_network)
+    # - No open ports on the router, only reachable from LAN/Tailscale
+    # - Not exposed directly, sits behind NPM reverse proxy
+    #
+    # If running on a non-Arch host, try removing cap_add first — you may
+    # not need it and a standard unprivileged container is preferable.
+
+    cap_add:
+      - SYS_ADMIN
+    #user: "100"
+    ports:
+      - "9980:9980"
+    environment:
+      - aliasgroup1=https://nextcloud.yourdomain.com:443
+      - DONT_GEN_SSL_CERT=true
+      - server_name=nextcloud.yourdomain.com
+      - 'extra_params=--o:ssl.enable=false --o:ssl.termination=true --o:ssl.verify=false'
+    extra_hosts:
+      - "nextcloud.yourdomain.com:SERVER-IP"
+    networks:
+      - nextcloud_network
+
+volumes:
+  db_data:
+  nextcloud_data:
+  
+networks:
+  nextcloud_network:
+    driver: bridge
