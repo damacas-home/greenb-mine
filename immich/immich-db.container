@@ -1,0 +1,15 @@
+[Unit]
+Description=Immich Postgres Database
+
+[Container]
+Pod=immich.pod
+ContainerName=immich-db
+Image=ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0
+#Network=immich-backend
+Volume=/path/to/your/immich-app/postgres:/var/lib/postgresql/data:Z
+# Environment for the password you use
+Environment=POSTGRES_PASSWORD=YOURPASSWORD
+Environment=POSTGRES_DB=immich
+
+[Install]
+WantedBy=multi-user.target

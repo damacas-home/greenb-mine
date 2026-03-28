@@ -1,0 +1,25 @@
+[Unit]
+Description=Immich Server
+After=immich-db.service immich-redis.service immich-ml.service
+
+[Container]
+Pod=immich.pod
+ContainerName=immich-server
+Image=ghcr.io/immich-app/immich-server:release
+Environment=IMMICH_HOST=0.0.0.0
+
+# Your existing volumes
+Volume=/path/to/your/upload/folder:/usr/src/app/upload:Z
+Volume=/path/to/external/library:/usr/src/app/external:Z
+
+# Required for Immich to store machine learning cache/profiles
+Volume=immich-profile:/usr/src/app/profiles
+Environment=DB_URL=postgres://postgres:YOURPASSWORD@localhost:5432/immich
+Environment=REDIS_HOSTNAME=immich-redis
+Environment=IMMICH_MACHINE_LEARNING_URL=http://immich-machine-learning:3003
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,19 @@
+[Unit]
+Description=Immich Machine Learning
+After=network-online.target
+
+[Container]
+Pod=immich.pod
+ContainerName=immich-machine-learning
+Image=ghcr.io/immich-app/immich-machine-learning:release
+# Attach to the backend network
+#Network=immich-backend
+# Match the volume mapping used in your other files
+Volume=/path/to/your/model-cache:/cache:Z
+# If you use hardware acceleration (NVIDIA/Intel), those flags go here
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

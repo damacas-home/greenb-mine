@@ -1,0 +1,11 @@
+[Unit]
+Description=Immich Redis Cache
+
+[Container]
+Pod=immich.pod
+ContainerName=immich-redis
+Image=docker.io/library/redis:6.2-alpine
+#Network=immich-backend
+
+[Install]
+WantedBy=multi-user.target

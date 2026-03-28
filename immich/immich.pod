@@ -1,0 +1,11 @@
+[Unit]
+Description=Immich Photo Stack Pod (VIP: .201)
+
+[Pod]
+PodName=immich-stack
+Network=lan_vips:ip=IPAddress_of_Immich_Server
+# Use your DNS server if you have a local DNS
+DNS=YourDNS-IPAddress
+
+[Install]
+WantedBy=multi-user.target
