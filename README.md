@@ -1,2 +1,2 @@
 # greenb-mine
-server configs
+General server configs as they are developed for homelad
