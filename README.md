@@ -1,0 +1,2 @@
+# greenb-mine
+server configs
