@@ -1,0 +1,47 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+
+rule_files:
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: "podman-rootless"
+    static_configs:
+      - targets: ["localhost:9882"]
+        labels:
+          host: "Arch_Server"
+          context: "rootless"
+
+  - job_name: "podman-rootful"
+    static_configs:
+      - targets: ["localhost:9883"]
+        labels:
+          host: "Arch_Server"
+          context: "rootful"
+
+  - job_name: "node"
+    static_configs:
+      - targets: ["localhost:9100"]
+        labels:
+          host: "Arch_Server"
+
+  - job_name: "rpi-node"
+    static_configs:
+      - targets: ["<raspberrypi-ip>:9100"]
+        labels:
+          host: "raspberrypi"
+
+  - job_name: "adguard"
+    static_configs:
+      - targets: ["<raspberrypi-ip>:9618"]
+        labels:
+          host: "raspberrypi"

@@ -1,0 +1,10 @@
+# /etc/grafana.ini — relevant changes from defaults only
+# Copy to /etc/grafana.ini and replace placeholders
+
+[server]
+# Change if port 3000 is already in use on your system
+http_port = 3030
+
+# Set these if using a reverse proxy with SSL
+domain = grafana.<yourdomain>
+root_url = https://grafana.<yourdomain>

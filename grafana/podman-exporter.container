@@ -1,0 +1,21 @@
+[Unit]
+Description=Podman Prometheus Exporter (Rootless)
+
+[Container]
+# Use v1.11.0+ for Podman 5 compatibility
+Image=quay.io/navidys/prometheus-podman-exporter:v1.11.0
+ContainerName=podman-exporter
+# Maps host UID to container UID so it can read the rootless socket
+UserNS=keep-id
+Volume=/run/user/1000/podman/podman.sock:/run/podman/podman.sock
+Environment=CONTAINER_HOST=unix:///run/podman/podman.sock
+Network=host
+PodmanArgs=--security-opt label=disable
+Exec=--web.listen-address=:9882 --collector.enable-all
+
+[Service]
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

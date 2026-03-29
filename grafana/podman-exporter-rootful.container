@@ -1,0 +1,18 @@
+[Unit]
+Description=Podman Prometheus Exporter (Rootful)
+
+[Container]
+Image=quay.io/navidys/prometheus-podman-exporter:v1.11.0
+ContainerName=podman-exporter-rootful
+Volume=/run/podman/podman.sock:/run/podman/podman.sock
+Environment=CONTAINER_HOST=unix:///run/podman/podman.sock
+Network=host
+PodmanArgs=--security-opt label=disable
+Exec=--web.listen-address=:9883 --collector.enable-all
+
+[Service]
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
